@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ひとりの家計ノート</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="家計ノート">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f5f8fc" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1422" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600;700&display=swap">
+<style>
+:root{
+  --bg:#f5f8fc; --surface:#ffffff; --surface-2:#eef4fb; --line:#dce6f2;
+  --ink:#10213a; --ink-2:#4f6177; --ink-3:#6b7b8f;
+  --navy:#062b63; --blue:#0868d7; --blue-soft:#e3effd; --track:#e6edf6;
+  --income:#0d7a5f; --income-soft:#e2f4ee;
+  --over:#b8322a; --over-soft:#fbe9e7;
+  --focus:#0868d7;
+  --shadow:0 1px 2px rgba(6,43,99,.05),0 4px 16px rgba(6,43,99,.05);
+  --serif:"Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;
+  --sans:"Noto Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1422; --surface:#111d30; --surface-2:#16263e; --line:#23364f;
+    --ink:#e7eef8; --ink-2:#aebcd0; --ink-3:#8b9bb2;
+    --navy:#cfe0f7; --blue:#5aa2f5; --blue-soft:#17304f; --track:#1d2e46;
+    --income:#4fc9a3; --income-soft:#12342c;
+    --over:#ff8a7d; --over-soft:#3a1f1f;
+    --focus:#5aa2f5; --shadow:none; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1422; --surface:#111d30; --surface-2:#16263e; --line:#23364f;
+  --ink:#e7eef8; --ink-2:#aebcd0; --ink-3:#8b9bb2;
+  --navy:#cfe0f7; --blue:#5aa2f5; --blue-soft:#17304f; --track:#1d2e46;
+  --income:#4fc9a3; --income-soft:#12342c;
+  --over:#ff8a7d; --over-soft:#3a1f1f;
+  --focus:#5aa2f5; --shadow:none; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.7;letter-spacing:.02em;font-feature-settings:"palt" 1}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:6px}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:20px 64px}
+@media(min-width:720px){.wrap{padding-inline:28px}}
+
+/* ヘッダー */
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px;margin-bottom:20px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand h1{margin:0;font-family:var(--serif);font-size:1.35rem;color:var(--navy);letter-spacing:.04em;line-height:1.3}
+.lock{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;background:var(--blue-soft);color:var(--blue);font-size:.72rem;font-weight:700;white-space:nowrap}
+.month{display:flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.month button{width:36px;height:36px;border:0;background:transparent;border-radius:50%;cursor:pointer;color:var(--ink-2);font-size:1.1rem}
+.month button:hover{background:var(--surface-2)}
+.month output{min-width:7.5em;text-align:center;font-weight:700;color:var(--navy)}
+
+.grid{display:grid;gap:16px}
+@media(min-width:960px){.grid{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);align-items:start}}
+.col{display:grid;gap:16px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow);min-width:0}
+@media(min-width:720px){.card{padding:22px}}
+.card h2{margin:0 0 12px;font-size:.95rem;color:var(--navy);letter-spacing:.06em;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.card h2 small{font-weight:500;color:var(--ink-3);font-size:.75rem;letter-spacing:.02em}
+
+/* サマリー */
+.summary{background:linear-gradient(135deg,#062b63,#0a4595 70%,#0b5bc0);color:#fff;border:0}
+:root[data-theme="dark"] .summary{background:linear-gradient(135deg,#0f2c55,#123f7a)}
+.summary h2{color:rgba(255,255,255,.8)}
+.big{font-family:var(--serif);font-size:clamp(2rem,1.4rem + 2.6vw,2.7rem);font-weight:700;line-height:1.1;letter-spacing:.01em}
+.big small{font-size:.5em;margin-left:4px;font-family:var(--sans);font-weight:500}
+.budgetline{margin-top:14px}
+.bar{height:8px;border-radius:999px;background:rgba(255,255,255,.2);overflow:hidden;display:flex}
+.bar i{display:block;height:100%;border-radius:999px;background:#fff}
+.bar i.over{background:#ffb4ab}
+.budgetline p{margin:6px 0 0;font-size:.8rem;color:rgba(255,255,255,.85);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18)}
+.stats div{min-width:0}
+.stats dt{font-size:.7rem;color:rgba(255,255,255,.72);letter-spacing:.06em}
+.stats dd{margin:0;font-weight:700;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 入力フォーム */
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface-2);border-radius:10px;padding:3px;margin-bottom:14px}
+.seg button{border:0;background:transparent;padding:8px;border-radius:8px;font-weight:700;color:var(--ink-2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--blue);box-shadow:var(--shadow)}
+.seg button[data-type="income"][aria-pressed="true"]{color:var(--income)}
+.amount{display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--line);padding-bottom:4px;margin-bottom:14px}
+.amount:focus-within{border-color:var(--blue)}
+.amount span{font-size:1.4rem;color:var(--ink-3);font-weight:700}
+.amount input{flex:1;min-width:0;border:0;background:transparent;font-size:1.9rem;font-weight:700;padding:4px 0;outline:none;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.chips button{border:1px solid var(--line);background:var(--surface);padding:6px 12px;border-radius:999px;font-size:.82rem;cursor:pointer;color:var(--ink-2)}
+.chips button[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+:root[data-theme="dark"] .chips button[aria-pressed="true"]{color:#0b1422}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chips button[aria-pressed="true"]{color:#0b1422}}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fields .full{grid-column:1/-1}
+label.f{display:grid;gap:4px;font-size:.75rem;color:var(--ink-3);font-weight:500}
+label.f input,label.f select{width:100%;min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 10px;font-size:.92rem;color:var(--ink)}
+.actions{display:flex;gap:8px;margin-top:14px}
+.btn{border:0;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer;letter-spacing:.06em}
+.btn.primary{flex:1;background:var(--navy);color:var(--surface)}
+.btn.primary:hover{filter:brightness(1.15)}
+.btn.ghost{background:var(--surface-2);color:var(--ink-2)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.hint{font-size:.75rem;color:var(--ink-3);margin:8px 0 0}
+
+/* カテゴリ別 */
+.cats{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.cat{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:baseline}
+.cat .name{font-size:.88rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat .val{font-size:.85rem;text-align:right;white-space:nowrap}
+.cat .val small{color:var(--ink-3);font-size:.75rem}
+.meter{grid-column:1/-1;height:6px;border-radius:999px;background:var(--track);overflow:hidden}
+.meter i{display:block;height:100%;border-radius:999px;background:var(--blue)}
+.cat.over .meter i{background:var(--over)}
+.flag{display:inline-block;margin-left:6px;padding:0 6px;border-radius:4px;background:var(--over-soft);color:var(--over);font-size:.68rem;font-weight:700;vertical-align:1px}
+.empty{color:var(--ink-3);font-size:.85rem;margin:4px 0}
+
+/* 推移 */
+.trend{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;align-items:end;height:150px;padding-top:18px}
+.tcol{display:grid;grid-template-rows:1fr auto;height:100%;gap:6px;min-width:0;position:relative}
+.tbar{align-self:end;border-radius:4px 4px 0 0;background:color-mix(in srgb,var(--blue) 45%,var(--surface));min-height:2px;position:relative}
+.tcol.cur .tbar{background:var(--blue)}
+.tval{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:.68rem;color:var(--ink-2);white-space:nowrap;padding-bottom:2px}
+.tlab{font-size:.72rem;color:var(--ink-3);text-align:center}
+.tcol.cur .tlab{color:var(--ink);font-weight:700}
+.axis{border-top:1px solid var(--line)}
+
+/* 明細 */
+.day{margin:0;padding:0;list-style:none}
+.dayhead{display:flex;justify-content:space-between;font-size:.75rem;color:var(--ink-3);padding:10px 2px 4px;border-bottom:1px solid var(--line);font-weight:700}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 10px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line)}
+.row .main{min-width:0}
+.row .t{font-size:.9rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .s{font-size:.72rem;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .amt{font-weight:700;white-space:nowrap}
+.row .amt.in{color:var(--income)}
+.row .ops{display:flex;gap:2px}
+.row .ops button{border:0;background:transparent;color:var(--ink-3);font-size:.72rem;padding:6px 8px;border-radius:6px;cursor:pointer;white-space:nowrap}
+.row .ops button:hover{background:var(--surface-2);color:var(--ink)}
+.row .ops button.danger{background:var(--over-soft);color:var(--over);font-weight:700}
+.row.editing{background:var(--blue-soft)}
+.listtools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.listtools select{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 8px;font-size:.8rem}
+
+/* 設定 */
+details.settings summary{cursor:pointer;font-weight:700;color:var(--navy);font-size:.95rem;letter-spacing:.06em;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.settings summary::-webkit-details-marker{display:none}
+details.settings summary::after{content:"＋";color:var(--ink-3)}
+details.settings[open] summary::after{content:"－"}
+.btable{display:grid;gap:8px;margin-top:14px}
+.brow{display:grid;grid-template-columns:minmax(0,1fr) 130px 32px;gap:8px;align-items:center}
+.brow input{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 9px;font-size:.88rem;width:100%;min-width:0}
+.brow input.b{text-align:right}
+.brow button{border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:1rem;border-radius:6px;height:32px}
+.brow button:hover{background:var(--over-soft);color:var(--over)}
+.subh{font-size:.75rem;color:var(--ink-3);font-weight:700;letter-spacing:.08em;margin:16px 0 4px}
+
+.note{font-size:.75rem;color:var(--ink-3);display:flex;gap:8px;align-items:flex-start;margin:0}
+.banner{padding:10px 14px;border-radius:10px;background:var(--over-soft);color:var(--over);font-size:.82rem;margin-bottom:16px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:var(--surface);padding:10px 18px;border-radius:999px;font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .2s;z-index:10;white-space:nowrap}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+/* iPhone：入力時の自動ズームを防ぐため16px以上 */
+label.f input,label.f select,.brow input,.listtools select{font-size:16px}
+.wrap{padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(64px,calc(24px + env(safe-area-inset-bottom)))}
+.backup{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.backup .btn{flex:1 1 auto;padding:10px 14px;font-size:.85rem}
+.btn.danger{background:var(--over-soft);color:var(--over)}
+.backup-state{font-size:.78rem;color:var(--ink-2);margin:0}
+.backup-state.warn{color:var(--over);font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>ひとりの家計ノート</h1>
+      <span class="lock" title="記録はこの端末の中だけに保存されます">📱 この端末だけ</span>
+    </div>
+    <nav class="month" aria-label="表示する月">
+      <button type="button" id="prev" aria-label="前の月">‹</button>
+      <output id="monthLabel" aria-live="polite"></output>
+      <button type="button" id="next" aria-label="次の月">›</button>
+    </nav>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <div class="grid">
+    <div class="col">
+      <section class="card summary" aria-labelledby="sumTitle">
+        <h2 id="sumTitle">今月の支出</h2>
+        <div class="big num" id="spent">¥0</div>
+        <div class="budgetline" id="budgetline"></div>
+        <dl class="stats">
+          <div><dt>収入</dt><dd class="num" id="income">¥0</dd></div>
+          <div><dt>収支</dt><dd class="num" id="balance">¥0</dd></div>
+          <div><dt id="perDayLabel">1日あたり</dt><dd class="num" id="perDay">—</dd></div>
+        </dl>
+      </section>
+
+      <section class="card" aria-labelledby="formTitle">
+        <h2 id="formTitle"><span id="formMode">記録する</span><small id="formSub"></small></h2>
+        <form id="form" autocomplete="off">
+          <div class="seg" role="group" aria-label="種類">
+            <button type="button" data-type="expense" aria-pressed="true">支出</button>
+            <button type="button" data-type="income" aria-pressed="false">収入</button>
+          </div>
+          <label class="amount"><span>¥</span><input id="amount" name="amount" inputmode="numeric" placeholder="0" aria-label="金額" required></label>
+          <div class="chips" id="chips" role="group" aria-label="カテゴリ"></div>
+          <div class="fields">
+            <label class="f">日付<input type="date" id="date" name="date" required></label>
+            <label class="f">支払い方法
+              <select id="method" name="method">
+                <option>現金</option><option>クレジットカード</option><option>電子マネー・QR</option><option>口座振替</option><option>その他</option>
+              </select>
+            </label>
+            <label class="f full">メモ<input id="memo" name="memo" maxlength="60" placeholder="例：技術書、同期と飲み会"></label>
+          </div>
+          <div class="actions">
+            <button class="btn ghost" type="button" id="cancelEdit" hidden>やめる</button>
+            <button class="btn primary" type="submit" id="submit">記録する</button>
+          </div>
+          <p class="hint" id="formHint"></p>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="catTitle">
+        <h2 id="catTitle">カテゴリ別の支出<small id="catSub">予算に対する使用額</small></h2>
+        <ul class="cats" id="cats"></ul>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="card" aria-labelledby="trendTitle">
+        <h2 id="trendTitle">支出の推移<small>直近6か月</small></h2>
+        <div class="trend" id="trend" role="img"></div>
+        <div class="axis"></div>
+      </section>
+
+      <section class="card" aria-labelledby="listTitle">
+        <h2 id="listTitle"><span>明細</span>
+          <span class="listtools">
+            <select id="filter" aria-label="カテゴリで絞り込み"><option value="">すべて</option></select>
+            <button class="btn ghost" type="button" id="csv" style="padding:5px 10px;font-size:.75rem">CSV</button>
+          </span>
+        </h2>
+        <div id="list"></div>
+      </section>
+
+      <section class="card">
+        <details class="settings" id="settings">
+          <summary>カテゴリと月予算の設定</summary>
+          <p class="hint">予算は毎月共通です。0 または空欄は「予算なし」として扱います。</p>
+          <p class="subh">支出カテゴリ／月予算</p>
+          <div class="btable" id="expenseRows"></div>
+          <p class="subh">収入カテゴリ</p>
+          <div class="btable" id="incomeRows"></div>
+          <div class="actions">
+            <button class="btn ghost" type="button" id="addExpense">＋ 支出カテゴリ</button>
+            <button class="btn ghost" type="button" id="addIncome">＋ 収入カテゴリ</button>
+          </div>
+          <div class="actions"><button class="btn primary" type="button" id="saveSettings">設定を保存</button></div>
+        </details>
+      </section>
+
+      <section class="card" aria-labelledby="bkTitle">
+        <h2 id="bkTitle">バックアップ<small>記録はこのiPhoneの中だけにあります</small></h2>
+        <p class="backup-state" id="backupState"></p>
+        <div class="backup">
+          <button class="btn ghost" type="button" id="exportJson">バックアップを保存</button>
+          <button class="btn ghost" type="button" id="importJson">バックアップから復元</button>
+          <input type="file" id="importFile" accept="application/json,.json" hidden>
+        </div>
+        <p class="hint">アプリを削除したり、Safariの「履歴とWebサイトデータを消去」を行うと記録も消えます。月に1回ほど、バックアップをファイルアプリやiCloud Driveに保存してください。</p>
+      </section>
+      <p class="note">📱 記録はこのiPhoneのアプリ内にだけ保存され、どこにも送信されません。ログインは不要です。</p>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const DEFAULT_SETTINGS = {
+    expense: [
+      { name: "食事・カフェ", budget: 0 }, { name: "外食・飲み会", budget: 0 }, { name: "趣味", budget: 0 },
+      { name: "書籍・学習", budget: 0 }, { name: "サブスク", budget: 0 }, { name: "交通", budget: 0 },
+      { name: "衣服・美容", budget: 0 }, { name: "交際・プレゼント", budget: 0 }, { name: "家計への入金", budget: 0 },
+      { name: "その他", budget: 0 }
+    ],
+    income: [{ name: "小遣い" }, { name: "給与・報酬" }, { name: "副収入" }, { name: "その他" }]
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const yen = (n) => (n < 0 ? "−¥" : "¥") + Math.abs(Math.round(n)).toLocaleString("ja-JP");
+  const pad = (n) => String(n).padStart(2, "0");
+  const today = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+  const ymOf = (s) => s.slice(0, 7);
+  const shiftYm = (ym, k) => { const [y, m] = ym.split("-").map(Number); const d = new Date(y, m - 1 + k, 1); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; };
+  const ymLabel = (ym) => { const [y, m] = ym.split("-"); return `${y}年${Number(m)}月`; };
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  const state = {
+    ym: ymOf(today()),
+    entries: [],
+    settings: structuredClone(DEFAULT_SETTINGS),
+    trend: {},
+    type: "expense",
+    category: DEFAULT_SETTINGS.expense[0].name,
+    editingId: null,
+    filter: "",
+    db: null,
+    mode: "loading",   // loading | db | local
+    localStore: {}     // 月ごとの明細（この端末に保存）
+  };
+  let unsubMonth = null, unsubSettings = null, writeChain = Promise.resolve(), confirmTimer = null, confirmId = null;
+
+  function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2200); }
+  function banner(msg) { const b = $("banner"); b.hidden = !msg; b.textContent = msg || ""; }
+
+  /* ---------- 保存 ---------- */
+  function monthRef(ym) { return state.db.doc(`months/${ym}`); }
+  function saveMonth(ym, entries) {
+    const body = { entries: entries.map((e) => ({ ...e })), updatedAt: new Date().toISOString() };
+    if (state.mode !== "db") { state.localStore[ym] = body.entries; persist(); return Promise.resolve(); }
+    writeChain = writeChain.then(() => monthRef(ym).set(body)).catch((e) => {
+      toast(e && e.code === "quota_exceeded" ? "保存容量の上限に達しました" : "保存できませんでした。もう一度お試しください");
+    });
+    return writeChain;
+  }
+  function saveSettings() {
+    if (state.mode !== "db") { persist(); return Promise.resolve(); }
+    return state.db.doc("settings/main").set({ ...state.settings, updatedAt: new Date().toISOString() });
+  }
+
+  /* ---------- 読み込み ---------- */
+  function watchMonth() {
+    if (unsubMonth) { unsubMonth(); unsubMonth = null; }
+    if (state.mode !== "db") { state.entries = state.localStore[state.ym] || []; renderAll(); return; }
+    state.entries = []; renderAll();
+    unsubMonth = monthRef(state.ym).onSnapshot((snap) => {
+      const d = snap.exists ? snap.data() : null;
+      state.entries = d && Array.isArray(d.entries) ? d.entries.map((e) => ({ ...e })) : [];
+      state.trend[state.ym] = sumExpense(state.entries);
+      renderAll();
+    }, () => banner("データの同期が止まりました。ページを開き直してください。"));
+    loadTrend();
+  }
+  async function loadTrend() {
+    const yms = [1, 2, 3, 4, 5].map((k) => shiftYm(state.ym, -k));
+    if (state.mode !== "db") { yms.forEach((y) => { state.trend[y] = sumExpense(state.localStore[y] || []); }); renderTrend(); return; }
+    const base = state.ym;
+    const snaps = await Promise.all(yms.map((y) => monthRef(y).get().catch(() => null)));
+    if (base !== state.ym) return;
+    snaps.forEach((s, i) => { const d = s && s.exists ? s.data() : null; state.trend[yms[i]] = sumExpense(d && Array.isArray(d.entries) ? d.entries : []); });
+    renderTrend();
+  }
+  function sumExpense(list) { return list.filter((e) => e.type === "expense").reduce((a, e) => a + (Number(e.amount) || 0), 0); }
+
+  /* ---------- 描画 ---------- */
+  function renderAll() { renderSummary(); renderChips(); renderCats(); renderTrend(); renderList(); renderFilter(); }
+
+  function renderSummary() {
+    $("monthLabel").textContent = ymLabel(state.ym);
+    const spent = sumExpense(state.entries);
+    const income = state.entries.filter((e) => e.type === "income").reduce((a, e) => a + (Number(e.amount) || 0), 0);
+    const budget = state.settings.expense.reduce((a, c) => a + (Number(c.budget) || 0), 0);
+    $("sumTitle").textContent = `${ymLabel(state.ym)}の支出`;
+    $("spent").textContent = yen(spent);
+    $("income").textContent = yen(income);
+    $("balance").textContent = yen(income - spent);
+    const bl = $("budgetline");
+    if (budget > 0) {
+      const ratio = spent / budget, left = budget - spent;
+      bl.innerHTML = `<div class="bar" role="img" aria-label="予算の${Math.round(ratio * 100)}%を使用"><i class="${ratio > 1 ? "over" : ""}" style="width:${Math.min(100, ratio * 100)}%"></i></div>
+        <p class="num"><span>予算 ${yen(budget)} のうち ${Math.round(ratio * 100)}%</span><span>${left >= 0 ? "残り " + yen(left) : yen(-left) + " 超過"}</span></p>`;
+    } else {
+      bl.innerHTML = `<p>月予算は未設定です（下の「カテゴリと月予算の設定」から）</p>`;
+    }
+    // 1日あたり使える額：表示月が今月で予算がある場合のみ
+    const now = today(), isCur = ymOf(now) === state.ym;
+    if (budget > 0 && isCur) {
+      const [y, m, d] = now.split("-").map(Number);
+      const daysLeft = new Date(y, m, 0).getDate() - d + 1;
+      $("perDayLabel").textContent = `残り${daysLeft}日 1日あたり`;
+      $("perDay").textContent = budget - spent > 0 ? yen((budget - spent) / daysLeft) : "¥0";
+    } else {
+      $("perDayLabel").textContent = "記録件数";
+      $("perDay").textContent = `${state.entries.length}件`;
+    }
+  }
+
+  function catsForType(t) { return (t === "expense" ? state.settings.expense : state.settings.income).map((c) => c.name); }
+
+  function renderChips() {
+    const names = catsForType(state.type);
+    if (!names.includes(state.category)) state.category = names[0] || "";
+    $("chips").innerHTML = names.map((n) => `<button type="button" data-cat="${esc(n)}" aria-pressed="${n === state.category}">${esc(n)}</button>`).join("");
+    document.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.type === state.type)));
+    $("method").closest("label").hidden = state.type === "income";
+  }
+
+  function renderCats() {
+    const by = {};
+    state.entries.filter((e) => e.type === "expense").forEach((e) => { by[e.category] = (by[e.category] || 0) + (Number(e.amount) || 0); });
+    const known = state.settings.expense.map((c) => ({ name: c.name, budget: Number(c.budget) || 0, spent: by[c.name] || 0 }));
+    Object.keys(by).forEach((k) => { if (!known.some((c) => c.name === k)) known.push({ name: k, budget: 0, spent: by[k] }); });
+    const rows = known.filter((c) => c.spent > 0 || c.budget > 0).sort((a, b) => b.spent - a.spent);
+    const maxSpent = Math.max(1, ...rows.map((r) => r.spent));
+    $("cats").innerHTML = rows.length ? rows.map((c) => {
+      const over = c.budget > 0 && c.spent > c.budget;
+      const w = c.budget > 0 ? Math.min(100, (c.spent / c.budget) * 100) : (c.spent / maxSpent) * 100;
+      return `<li class="cat${over ? " over" : ""}">
+        <span class="name">${esc(c.name)}${over ? '<span class="flag">⚠ 超過</span>' : ""}</span>
+        <span class="val num">${yen(c.spent)}${c.budget > 0 ? ` <small>/ ${yen(c.budget)}</small>` : ""}</span>
+        <span class="meter" aria-hidden="true"><i style="width:${w}%"></i></span></li>`;
+    }).join("") : `<li class="empty">この月の支出はまだありません。</li>`;
+  }
+
+  function renderTrend() {
+    const yms = [5, 4, 3, 2, 1, 0].map((k) => shiftYm(state.ym, -k));
+    state.trend[state.ym] = sumExpense(state.entries);
+    const vals = yms.map((y) => state.trend[y] || 0);
+    const max = Math.max(1, ...vals);
+    const el = $("trend");
+    el.setAttribute("aria-label", "直近6か月の支出：" + yms.map((y, i) => `${ymLabel(y)} ${yen(vals[i])}`).join("、"));
+    el.innerHTML = yms.map((y, i) => {
+      const h = (vals[i] / max) * 100;
+      const short = vals[i] >= 10000 ? (vals[i] / 10000).toFixed(vals[i] >= 100000 ? 0 : 1) + "万" : vals[i] ? vals[i].toLocaleString("ja-JP") : "";
+      return `<div class="tcol${i === 5 ? " cur" : ""}" title="${ymLabel(y)}：${yen(vals[i])}">
+        <div class="tbar" style="height:${h}%"><span class="tval num">${short}</span></div>
+        <span class="tlab">${Number(y.slice(5))}月</span></div>`;
+    }).join("");
+  }
+
+  function renderFilter() {
+    const sel = $("filter");
+    const names = [...new Set([...catsForType("expense"), ...catsForType("income"), ...state.entries.map((e) => e.category)])];
+    const cur = state.filter;
+    sel.innerHTML = `<option value="">すべて</option>` + names.map((n) => `<option ${n === cur ? "selected" : ""}>${esc(n)}</option>`).join("");
+  }
+
+  function renderList() {
+    const list = state.entries.filter((e) => !state.filter || e.category === state.filter)
+      .sort((a, b) => (b.date + (b.createdAt || "")).localeCompare(a.date + (a.createdAt || "")));
+    if (!list.length) { $("list").innerHTML = `<p class="empty">${state.mode === "loading" ? "読み込み中…" : "明細はまだありません。左のフォームから記録できます。"}</p>`; return; }
+    const groups = {};
+    list.forEach((e) => { (groups[e.date] = groups[e.date] || []).push(e); });
+    const wd = ["日", "月", "火", "水", "木", "金", "土"];
+    $("list").innerHTML = Object.keys(groups).map((d) => {
+      const [y, m, dd] = d.split("-").map(Number);
+      const dayTotal = sumExpense(groups[d]);
+      return `<ul class="day"><li class="dayhead"><span>${m}月${dd}日（${wd[new Date(y, m - 1, dd).getDay()]}）</span><span class="num">${dayTotal ? "支出 " + yen(dayTotal) : ""}</span></li>` +
+        groups[d].map((e) => `<li class="row${e.id === state.editingId ? " editing" : ""}">
+          <div class="main"><div class="t">${esc(e.category)}${e.memo ? "　<span style='color:var(--ink-2);font-weight:400'>" + esc(e.memo) + "</span>" : ""}</div>
+          <div class="s">${e.type === "income" ? "収入" : esc(e.method || "")}</div></div>
+          <span class="amt num${e.type === "income" ? " in" : ""}">${e.type === "income" ? "+" : ""}${yen(Number(e.amount) || 0)}</span>
+          <span class="ops"><button type="button" data-edit="${e.id}">編集</button><button type="button" data-del="${e.id}" class="${confirmId === e.id ? "danger" : ""}">${confirmId === e.id ? "削除する" : "削除"}</button></span>
+        </li>`).join("") + `</ul>`;
+    }).join("");
+  }
+
+  /* ---------- 設定 ---------- */
+  function renderSettings() {
+    $("expenseRows").innerHTML = state.settings.expense.map((c, i) => `<div class="brow">
+      <input value="${esc(c.name)}" data-kind="expense" data-i="${i}" data-f="name" aria-label="支出カテゴリ名">
+      <input class="b num" inputmode="numeric" value="${c.budget ? c.budget : ""}" placeholder="予算なし" data-kind="expense" data-i="${i}" data-f="budget" aria-label="${esc(c.name)}の月予算">
+      <button type="button" data-rm="expense" data-i="${i}" aria-label="${esc(c.name)}を削除">×</button></div>`).join("");
+    $("incomeRows").innerHTML = state.settings.income.map((c, i) => `<div class="brow">
+      <input value="${esc(c.name)}" data-kind="income" data-i="${i}" data-f="name" aria-label="収入カテゴリ名" style="grid-column:1/3">
+      <button type="button" data-rm="income" data-i="${i}" aria-label="${esc(c.name)}を削除">×</button></div>`).join("");
+  }
+  function readSettingsForm() {
+    const s = structuredClone(state.settings);
+    document.querySelectorAll("#settings input[data-kind]").forEach((inp) => {
+      const row = s[inp.dataset.kind][Number(inp.dataset.i)]; if (!row) return;
+      if (inp.dataset.f === "name") row.name = inp.value.trim();
+      else row.budget = Math.max(0, parseInt(inp.value.replace(/[^\d]/g, ""), 10) || 0);
+    });
+    s.expense = s.expense.filter((c) => c.name); s.income = s.income.filter((c) => c.name);
+    return s;
+  }
+
+  /* ---------- フォーム ---------- */
+  function resetForm() {
+    state.editingId = null;
+    $("amount").value = ""; $("memo").value = ""; $("date").value = ymOf(today()) === state.ym ? today() : `${state.ym}-01`;
+    $("formMode").textContent = "記録する"; $("submit").textContent = "記録する"; $("cancelEdit").hidden = true; $("formSub").textContent = "";
+  }
+  function startEdit(id) {
+    const e = state.entries.find((x) => x.id === id); if (!e) return;
+    state.editingId = id; state.type = e.type; state.category = e.category;
+    $("amount").value = Number(e.amount).toLocaleString("ja-JP"); $("memo").value = e.memo || ""; $("date").value = e.date;
+    if (e.method) $("method").value = e.method;
+    $("formMode").textContent = "明細を編集"; $("submit").textContent = "更新する"; $("cancelEdit").hidden = false; $("formSub").textContent = `${e.date} の記録`;
+    renderChips(); renderList();
+    $("amount").focus({ preventScroll: true });
+    $("form").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+  }
+
+  $("amount").addEventListener("input", (ev) => {
+    const digits = ev.target.value.replace(/[^\d]/g, "").replace(/^0+(?=\d)/, "");
+    ev.target.value = digits ? Number(digits).toLocaleString("ja-JP") : "";
+  });
+  document.querySelector(".seg").addEventListener("click", (ev) => {
+    const b = ev.target.closest("button[data-type]"); if (!b) return;
+    state.type = b.dataset.type; state.category = catsForType(state.type)[0] || ""; renderChips();
+  });
+  $("chips").addEventListener("click", (ev) => {
+    const b = ev.target.closest("button[data-cat]"); if (!b) return;
+    state.category = b.dataset.cat; renderChips();
+  });
+  $("form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const amount = parseInt($("amount").value.replace(/[^\d]/g, ""), 10) || 0;
+    const date = $("date").value;
+    if (!amount) { $("formHint").textContent = "金額を入力してください。"; $("amount").focus(); return; }
+    if (!date) { $("formHint").textContent = "日付を入力してください。"; return; }
+    if (!state.category) { $("formHint").textContent = "カテゴリを設定から追加してください。"; return; }
+    $("formHint").textContent = "";
+    const rec = { type: state.type, amount, category: state.category, date, memo: $("memo").value.trim(), method: state.type === "expense" ? $("method").value : "" };
+    const targetYm = ymOf(date);
+    if (state.editingId) {
+      const old = state.entries.find((x) => x.id === state.editingId);
+      const updated = { ...old, ...rec };
+      if (targetYm === state.ym) {
+        state.entries = state.entries.map((x) => (x.id === updated.id ? updated : x));
+        saveMonth(state.ym, state.entries);
+      } else { // 月をまたぐ編集：元の月から外し、移動先の月へ追加
+        state.entries = state.entries.filter((x) => x.id !== updated.id);
+        saveMonth(state.ym, state.entries);
+        await moveToMonth(targetYm, updated);
+      }
+      toast("更新しました");
+    } else {
+      const entry = { id: uid(), createdAt: new Date().toISOString(), ...rec };
+      if (targetYm === state.ym) { state.entries = [...state.entries, entry]; saveMonth(state.ym, state.entries); }
+      else await moveToMonth(targetYm, entry);
+      toast(targetYm === state.ym ? `${yen(amount)} を記録しました` : `${ymLabel(targetYm)}に記録しました`);
+    }
+    const keepType = state.type, keepCat = state.category;
+    resetForm(); state.type = keepType; state.category = keepCat; renderAll();
+    $("amount").focus({ preventScroll: true });
+  });
+  async function moveToMonth(ym, entry) {
+    let list = [];
+    if (state.mode === "db") { const s = await monthRef(ym).get().catch(() => null); const d = s && s.exists ? s.data() : null; list = d && Array.isArray(d.entries) ? d.entries.map((e) => ({ ...e })) : []; }
+    else list = state.localStore[ym] || [];
+    list = list.filter((x) => x.id !== entry.id).concat(entry);
+    state.trend[ym] = sumExpense(list);
+    await saveMonth(ym, list);
+  }
+  $("cancelEdit").addEventListener("click", () => { resetForm(); renderAll(); });
+
+  $("list").addEventListener("click", (ev) => {
+    const ed = ev.target.closest("[data-edit]"); if (ed) { startEdit(ed.dataset.edit); return; }
+    const del = ev.target.closest("[data-del]"); if (!del) return;
+    const id = del.dataset.del;
+    if (confirmId !== id) { // 1回目：確認状態にする
+      confirmId = id; clearTimeout(confirmTimer); confirmTimer = setTimeout(() => { confirmId = null; renderList(); }, 4000); renderList(); return;
+    }
+    confirmId = null; clearTimeout(confirmTimer);
+    state.entries = state.entries.filter((x) => x.id !== id);
+    if (state.editingId === id) resetForm();
+    saveMonth(state.ym, state.entries); renderAll(); toast("削除しました");
+  });
+  $("filter").addEventListener("change", (ev) => { state.filter = ev.target.value; renderList(); });
+
+  $("prev").addEventListener("click", () => { state.ym = shiftYm(state.ym, -1); state.filter = ""; resetForm(); watchMonth(); });
+  $("next").addEventListener("click", () => { state.ym = shiftYm(state.ym, 1); state.filter = ""; resetForm(); watchMonth(); });
+
+  $("settings").addEventListener("toggle", () => { if ($("settings").open) renderSettings(); });
+  $("settings").addEventListener("click", (ev) => {
+    const rm = ev.target.closest("[data-rm]");
+    if (rm) { const s = readSettingsForm(); state.settings = s; s[rm.dataset.rm].splice(Number(rm.dataset.i), 1); renderSettings(); return; }
+    if (ev.target.id === "addExpense") { state.settings = readSettingsForm(); state.settings.expense.push({ name: "新しいカテゴリ", budget: 0 }); renderSettings(); }
+    if (ev.target.id === "addIncome") { state.settings = readSettingsForm(); state.settings.income.push({ name: "新しいカテゴリ" }); renderSettings(); }
+  });
+  $("saveSettings").addEventListener("click", async () => {
+    state.settings = readSettingsForm();
+    try { await saveSettings(); toast("設定を保存しました"); } catch { toast("設定を保存できませんでした"); }
+    renderAll(); renderSettings();
+  });
+
+  /* ---------- CSV ---------- */
+  async function setupCsv(downloads) {
+    if (!downloads) return;
+    $("csv").hidden = false;
+    $("csv").addEventListener("click", async () => {
+      const head = ["日付", "種類", "カテゴリ", "金額", "支払い方法", "メモ"];
+      const rows = [...state.entries].sort((a, b) => a.date.localeCompare(b.date))
+        .map((e) => [e.date, e.type === "income" ? "収入" : "支出", e.category, e.amount, e.method || "", e.memo || ""]);
+      const csv = "﻿" + [head, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\r\n");
+      try { const r = await downloads.save({ filename: `kakei-${state.ym}.csv`, data: csv }); if (r.status === "saved") toast("CSVを保存しました"); }
+      catch (e) { if (e && e.code !== "declined") toast("CSVを保存できませんでした"); }
+    });
+  }
+
+  /* ---------- 端末内保存 ---------- */
+  const KEY = "hitori-kakei-v1";
+  function persist() {
+    try {
+      const months = {};
+      Object.keys(state.localStore).forEach((k) => { if (state.localStore[k] && state.localStore[k].length) months[k] = state.localStore[k]; });
+      localStorage.setItem(KEY, JSON.stringify({ version: 1, settings: state.settings, months, lastBackup: state.lastBackup || null, savedAt: new Date().toISOString() }));
+      renderBackupState();
+    } catch (e) { banner("この端末に保存できませんでした。空き容量やプライベートブラウズを確認してください。"); }
+  }
+  function loadLocal() {
+    try {
+      const raw = localStorage.getItem(KEY); if (!raw) return;
+      applyData(JSON.parse(raw));
+    } catch (e) { banner("保存データを読み込めませんでした。"); }
+  }
+  function applyData(d) {
+    if (!d || typeof d !== "object") throw new Error("bad");
+    if (d.settings && Array.isArray(d.settings.expense) && Array.isArray(d.settings.income)) {
+      state.settings = { expense: d.settings.expense.map((x) => ({ name: String(x.name), budget: Number(x.budget) || 0 })), income: d.settings.income.map((x) => ({ name: String(x.name) })) };
+    }
+    state.localStore = {};
+    if (d.months && typeof d.months === "object") Object.keys(d.months).forEach((k) => { if (/^\d{4}-\d{2}$/.test(k) && Array.isArray(d.months[k])) state.localStore[k] = d.months[k].map((e) => ({ ...e })); });
+    state.lastBackup = d.lastBackup || d.exportedAt || state.lastBackup || null;
+  }
+  function renderBackupState() {
+    const el = $("backupState"); const n = Object.values(state.localStore).reduce((a, l) => a + l.length, 0);
+    if (!state.lastBackup) { el.textContent = n ? `まだバックアップがありません（記録 ${n} 件）` : "記録はまだありません。"; el.className = "backup-state" + (n ? " warn" : ""); return; }
+    const days = Math.floor((Date.now() - new Date(state.lastBackup).getTime()) / 86400000);
+    el.textContent = `最後のバックアップ：${state.lastBackup.slice(0, 10)}（${days}日前）・記録 ${n} 件`;
+    el.className = "backup-state" + (days >= 30 ? " warn" : "");
+  }
+  async function saveFile(filename, text, type) {
+    const blob = new Blob([text], { type });
+    const file = new File([blob], filename, { type });
+    // iPhone：共有シートから「ファイルに保存」できる
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: filename }); return true; }
+      catch (e) { if (e && e.name === "AbortError") return false; }
+    }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.appendChild(a); a.click(); setTimeout(() => a.remove(), 1000); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    return true;
+  }
+  $("csv").addEventListener("click", async () => {
+    const head = ["日付", "種類", "カテゴリ", "金額", "支払い方法", "メモ"];
+    const rows = [...state.entries].sort((a, b) => a.date.localeCompare(b.date))
+      .map((e) => [e.date, e.type === "income" ? "収入" : "支出", e.category, e.amount, e.method || "", e.memo || ""]);
+    const csv = "﻿" + [head, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\r\n");
+    await saveFile(`kakei-${state.ym}.csv`, csv, "text/csv");
+  });
+  $("exportJson").addEventListener("click", async () => {
+    const now = new Date().toISOString();
+    const data = { app: "hitori-kakei", version: 1, exportedAt: now, settings: state.settings, months: state.localStore };
+    const ok = await saveFile(`kakei-backup-${now.slice(0, 10)}.json`, JSON.stringify(data, null, 1), "application/json");
+    if (ok) { state.lastBackup = now; persist(); renderBackupState(); toast("バックアップを書き出しました"); }
+  });
+  let importArmed = false, importTimer = null;
+  $("importJson").addEventListener("click", () => {
+    if (!importArmed) { // 復元は上書きになるので2回押しで確定
+      importArmed = true; $("importJson").textContent = "上書きして復元する（もう一度押す）"; $("importJson").classList.add("danger");
+      clearTimeout(importTimer); importTimer = setTimeout(() => { importArmed = false; $("importJson").textContent = "バックアップから復元"; $("importJson").classList.remove("danger"); }, 5000); return;
+    }
+    importArmed = false; clearTimeout(importTimer); $("importJson").textContent = "バックアップから復元"; $("importJson").classList.remove("danger"); $("importFile").click();
+  });
+  $("importFile").addEventListener("change", async (ev) => {
+    const f = ev.target.files && ev.target.files[0]; ev.target.value = ""; if (!f) return;
+    try {
+      const d = JSON.parse(await f.text());
+      if (d.app !== "hitori-kakei") throw new Error("not ours");
+      applyData(d); persist(); resetForm(); watchMonth(); renderBackupState(); toast("復元しました");
+    } catch (e) { toast("このファイルは復元できません"); }
+  });
+
+  /* ---------- 起動 ---------- */
+  state.mode = "local";
+  loadLocal();
+  resetForm(); watchMonth(); renderBackupState();
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
+</script>
+</body>
+</html>
